@@ -9,4 +9,3 @@ public record PaymentRequest(
     Currency Currency,
     string? Description = null
 );
-

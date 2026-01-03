@@ -1,9 +1,9 @@
-using System.Net;
-using System.Text.Json;
 using Common.Exceptions;
 using Common.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
+using System.Net;
+using System.Text.Json;
 
 namespace Common.Middleware;
 
@@ -51,7 +51,7 @@ public class ExceptionHandlingMiddleware
             _ => new ApiResponse<object>
             {
                 Success = false,
-                Message = "An error occurred while processing your request.",
+                Message = "An error occurred.",
                 ErrorCode = "INTERNAL_SERVER_ERROR"
             }
         };
@@ -67,11 +67,11 @@ public class ExceptionHandlingMiddleware
 
         if (statusCode >= 500)
         {
-            _logger.LogError(exception, "An unhandled exception occurred");
+            _logger.LogError(exception, "An unhandled exception");
         }
         else
         {
-            _logger.LogWarning(exception, "Business exception occurred: {Message}", exception.Message);
+            _logger.LogWarning(exception, "Business exception: {Message}", exception.Message);
         }
 
         var jsonOptions = new JsonSerializerOptions
@@ -83,4 +83,3 @@ public class ExceptionHandlingMiddleware
         await context.Response.WriteAsync(jsonResponse);
     }
 }
-

@@ -9,34 +9,30 @@ public class PaymentService
 
     public PaymentService(IEnumerable<ITarget> adapters)
     {
-        var bankAdapter = adapters.OfType<BankAdapter>().FirstOrDefault();
-        var chequeAdapter = adapters.OfType<ChequeAdapter>().FirstOrDefault();
-        var cashAdapter = adapters.OfType<CashAdapter>().FirstOrDefault();
+        _adapters = adapters.ToDictionary(a => a.PaymentType);
 
-        if (bankAdapter == null || chequeAdapter == null || cashAdapter == null)
-            throw new BusinessException("One or more payment adapters are not registered.", "ADAPTER_NOT_REGISTERED");
+        var missingTypes = Enum.GetValues<PaymentType>()
+            .Where(type => !_adapters.ContainsKey(type))
+            .ToList();
 
-        _adapters = new Dictionary<PaymentType, ITarget>
+        if (missingTypes.Any())
         {
-            { PaymentType.Bank, bankAdapter },
-            { PaymentType.Cheque, chequeAdapter },
-            { PaymentType.Cash, cashAdapter }
-        };
+            var missing = string.Join(", ", missingTypes);
+            throw new BusinessException(
+                $"Missing payment adapters: {missing}", 
+                "ADAPTER_NOT_REGISTERED");
+        }
     }
 
     public PaymentResult Process(PaymentType type, Money amount, string? description = null)
     {
         if (!_adapters.TryGetValue(type, out var adapter))
-            throw new BusinessException($" {type}: not supported.", "PAYMENT_TYPE_NOT_SUPPORTED");
+        {
+            throw new BusinessException(
+                $"Payment type '{type}' is not supported.", 
+                "PAYMENT_TYPE_NOT_SUPPORTED");
+        }
 
         return adapter.Process(amount, description);
     }
 }
-
-public enum PaymentType
-{
-    Bank = 1,
-    Cheque = 2,
-    Cash = 3
-}
-

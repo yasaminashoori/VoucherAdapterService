@@ -1,5 +1,3 @@
-using Domain;
-
 namespace Application;
 
 public class BankAdaptee
@@ -19,6 +17,8 @@ public class BankAdaptee
     }
 }
 
+public record ChequeRegistrationResult(bool Success, string? TransactionId, string Message);
+
 public class ChequeAdaptee
 {
     private readonly string _chequeNumber;
@@ -30,13 +30,15 @@ public class ChequeAdaptee
         _dueDate = dueDate;
     }
 
-    public bool RegisterPayment(int tomanAmount, string notes)
+    public ChequeRegistrationResult RegisterPayment(long tomanAmount, string notes)
     {
         if (_dueDate < DateTime.Now)
-            return false;
+            return new ChequeRegistrationResult(false, null, "Cheque has expired");
 
+        var transactionId = $"CHEQUE-{Guid.NewGuid():N}";
         Console.WriteLine($"Cheque Payment: {_chequeNumber} | {tomanAmount:N0} Toman | {notes}");
-        return true;
+        
+        return new ChequeRegistrationResult(true, transactionId, "Cheque payment registered");
     }
 }
 
@@ -49,9 +51,10 @@ public class CashAdaptee
         _registerId = registerId;
     }
 
-    public void RecordTransaction(decimal amount, string memo)
+    public string RecordTransaction(long tomanAmount, string memo)
     {
-        Console.WriteLine($"Cash Payment: {_registerId} | {amount:N0} | {memo}");
+        var transactionId = $"CASH-{Guid.NewGuid():N}";
+        Console.WriteLine($"Cash Payment: {_registerId} | {tomanAmount:N0} Toman | {memo}");
+        return transactionId;
     }
 }
-
