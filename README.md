@@ -1,8 +1,6 @@
 # VoucherAdapterService
 
-A payment processing API that shows the Adapter pattern for integrating multiple payment methods such as Bank, Cheque and Cash with different interfaces into a unified system.
-
-I needed to integrate three payment systems that each had their own interfaces.
+A payment processing API that shows the Adapter pattern for integrating multiple payment methods such as Bank, Cheque and Cash with different interfaces into a unified system. I needed to integrate three payment systems that each had their own interfaces.
 
 Instead of polluting the business logic with if, else and currency conversions the Adapter pattern let us wrap each of these behind a common interface:
 
