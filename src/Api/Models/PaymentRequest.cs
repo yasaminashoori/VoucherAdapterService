@@ -1,11 +1,12 @@
 using Application;
+using Domain;
 
 namespace Api.Models;
 
 public record PaymentRequest(
     PaymentType Type,
     long Amount,
-    string Currency,
-    string Description
+    Currency Currency,
+    string? Description = null
 );
 

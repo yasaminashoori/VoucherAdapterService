@@ -1,5 +1,7 @@
 using Application;
 using Api.Models;
+using Common.Exceptions;
+using Common.Models;
 using Domain;
 using Microsoft.AspNetCore.Mvc;
 
@@ -20,40 +22,17 @@ public class PaymentController : ControllerBase
     public IActionResult Process([FromBody] PaymentRequest request)
     {
         if (request == null)
-            return BadRequest(new { error = "Request body is required." });
+            throw new ValidationException("Request body is required.");
 
         if (request.Amount <= 0)
-            return BadRequest(new { error = "Amount must be greater than zero." });
+            throw new ValidationException("Amount must be greater than zero.");
 
-        if (string.IsNullOrWhiteSpace(request.Description))
-            return BadRequest(new { error = "Description is required." });
+        var amount = request.Currency == Currency.Rial
+            ? Money.Rial(request.Amount)
+            : Money.Toman(request.Amount);
 
-        if (string.IsNullOrWhiteSpace(request.Currency))
-            return BadRequest(new { error = "Currency is required." });
-
-        try
-        {
-            var amount = request.Currency.Equals("Rial", StringComparison.OrdinalIgnoreCase)
-                ? Money.Rial(request.Amount)
-                : request.Currency.Equals("Toman", StringComparison.OrdinalIgnoreCase)
-                    ? Money.Toman(request.Amount)
-                    : throw new ArgumentException($"Unsupported currency: {request.Currency}");
-
-            var result = _service.Process(request.Type, amount, request.Description);
-            return Ok(result);
-        }
-        catch (ArgumentException ex)
-        {
-            return BadRequest(new { error = ex.Message });
-        }
-        catch (NotSupportedException ex)
-        {
-            return BadRequest(new { error = ex.Message });
-        }
-        catch (Exception)
-        {
-            return StatusCode(500, new { error = "An error occurred while processing the payment." });
-        }
+        var result = _service.Process(request.Type, amount, request.Description);
+        return Ok(ApiResponse<PaymentResult>.SuccessResponse(result, "Payment processed successfully"));
     }
 }
 

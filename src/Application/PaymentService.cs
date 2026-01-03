@@ -1,3 +1,4 @@
+using Common.Exceptions;
 using Domain;
 
 namespace Application;
@@ -13,7 +14,7 @@ public class PaymentService
         var cashAdapter = adapters.OfType<CashAdapter>().FirstOrDefault();
 
         if (bankAdapter == null || chequeAdapter == null || cashAdapter == null)
-            throw new InvalidOperationException("One or more payment adapters are not registered.");
+            throw new BusinessException("One or more payment adapters are not registered.", "ADAPTER_NOT_REGISTERED");
 
         _adapters = new Dictionary<PaymentType, ITarget>
         {
@@ -23,10 +24,10 @@ public class PaymentService
         };
     }
 
-    public PaymentResult Process(PaymentType type, Money amount, string description)
+    public PaymentResult Process(PaymentType type, Money amount, string? description = null)
     {
         if (!_adapters.TryGetValue(type, out var adapter))
-            throw new NotSupportedException($"Payment type {type} is not supported.");
+            throw new BusinessException($" {type}: not supported.", "PAYMENT_TYPE_NOT_SUPPORTED");
 
         return adapter.Process(amount, description);
     }

@@ -1,4 +1,5 @@
 using Application;
+using Common.Middleware;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -23,6 +24,9 @@ builder.Services.AddScoped<PaymentService>(sp =>
     new PaymentService(sp.GetServices<ITarget>()));
 
 var app = builder.Build();
+
+// Add exception handling middleware early in the pipeline
+app.UseMiddleware<ExceptionHandlingMiddleware>();
 
 if (app.Environment.IsDevelopment())
 {
